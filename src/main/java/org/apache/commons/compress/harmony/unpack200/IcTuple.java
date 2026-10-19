@@ -1,0 +1,442 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.apache.commons.compress.harmony.unpack200;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * An IcTuple is the set of information that describes an inner class.
+ *
+ * C is the fully qualified class name<br>
+ * F is the flags<br>
+ * C2 is the outer class name, or null if it can be inferred from C<br>
+ * N is the inner class name, or null if it can be inferred from C<br>
+ *
+ * @see <a href="https://docs.oracle.com/en/java/javase/13/docs/specs/pack-spec.html">Pack200: A Packed Class Deployment Format For Java Applications</a>
+ */
+public class IcTuple {
+
+    private static final String[] EMPTY_STRING_ARRAY = {};
+
+    /**
+     * Nested class flag.
+     */
+    public static final int NESTED_CLASS_FLAG = 0x00010000;
+
+    /**
+     * Empty IcTuple array.
+     */
+    static final IcTuple[] EMPTY_ARRAY = {};
+
+    private final int cIndex;
+    private final int c2Index;
+
+    private final int nIndex;
+
+    private final int tIndex;
+
+    /**
+     * This class name.
+     */
+    protected String C;
+
+    /**
+     * Flags.
+     */
+    protected int F;
+
+    /**
+     * Outer class name.
+     */
+    protected String C2;
+
+    /**
+     * Simple class name.
+     */
+    protected String N;
+
+    private boolean predictSimple;
+
+    private boolean predictOuter;
+    private String cachedOuterClassString;
+    private String cachedSimpleClassName;
+    private boolean initialized;
+    private boolean anonymous;
+    private boolean outerIsAnonymous;
+    private boolean member = true;
+    private int cachedOuterClassIndex = -1;
+    private int cachedSimpleClassNameIndex = -1;
+    private boolean hashCodeComputed;
+
+    private int cachedHashCode;
+
+    /**
+     * Constructs a new instance.
+     *
+     * @param C       this class name.
+     * @param F       flags.
+     * @param C2      outer class name.
+     * @param N       simple class name.
+     * @param cIndex  The index of C in cpClass.
+     * @param c2Index The index of C2 in cpClass, or -1 if C2 is null.
+     * @param nIndex  The index of N in cpUTF8, or -1 if N is null.
+     * @param tIndex  The tuple index.
+     */
+    public IcTuple(final String C, final int F, final String C2, final String N, final int cIndex, final int c2Index, final int nIndex, final int tIndex) {
+        this.C = C;
+        this.F = F;
+        this.C2 = C2;
+        this.N = N;
+        this.cIndex = cIndex;
+        this.c2Index = c2Index;
+        this.nIndex = nIndex;
+        this.tIndex = tIndex;
+        if (N == null) {
+            predictSimple = true;
+        }
+        if (C2 == null) {
+            predictOuter = true;
+        }
+        initializeClassStrings();
+    }
+
+    private boolean computeOuterIsAnonymous() {
+        final String[] result = innerBreakAtDollar(cachedOuterClassString);
+        if (result.length == 0) {
+            throw new IllegalStateException("Should have an outer before checking if it's anonymous");
+        }
+        for (final String element : result) {
+            if (isAllDigits(element)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean equals(final Object object) {
+        if (object == null || object.getClass() != this.getClass()) {
+            return false;
+        }
+        final IcTuple other = (IcTuple) object;
+        return Objects.equals(C, other.C)
+                && Objects.equals(C2, other.C2)
+                && Objects.equals(N, other.N);
+    }
+
+    private void generateHashCode() {
+        hashCodeComputed = true;
+        cachedHashCode = 17;
+        if (C != null) {
+            cachedHashCode = +C.hashCode();
+        }
+        if (C2 != null) {
+            cachedHashCode = +C2.hashCode();
+        }
+        if (N != null) {
+            cachedHashCode = +N.hashCode();
+        }
+    }
+
+    /**
+     * Gets the this class name (C).
+     *
+     * @return The this class name.
+     */
+    public String getC() {
+        return C;
+    }
+
+    /**
+     * Gets the outer class name (C2).
+     *
+     * @return The outer class name.
+     */
+    public String getC2() {
+        return C2;
+    }
+
+    /**
+     * Gets the flags (F).
+     *
+     * @return The flags.
+     */
+    public int getF() {
+        return F;
+    }
+
+    /**
+     * Gets the simple class name (N).
+     *
+     * @return The simple class name.
+     */
+    public String getN() {
+        return N;
+    }
+
+    /**
+     * Gets the tuple index.
+     *
+     * @return The tuple index.
+     */
+    public int getTupleIndex() {
+        return tIndex;
+    }
+
+    @Override
+    public int hashCode() {
+        if (!hashCodeComputed) {
+            generateHashCode();
+        }
+        return cachedHashCode;
+    }
+
+    private void initializeClassStrings() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+
+        if (!predictSimple) {
+            cachedSimpleClassName = N;
+        }
+        if (!predictOuter) {
+            cachedOuterClassString = C2;
+        }
+        // Class names must be calculated from
+        // this class name.
+        final String[] nameComponents = innerBreakAtDollar(C);
+        if (nameComponents.length == 0) {
+            // Unable to predict outer class
+            // throw new IllegalStateException("Unable to predict outer class name: " + C);
+        }
+        if (nameComponents.length == 1) {
+            // Unable to predict simple class name
+            // throw new IllegalStateException("Unable to predict inner class name: " + C);
+        }
+        if (nameComponents.length < 2) {
+            // If we get here, we hope cachedSimpleClassName
+            // and cachedOuterClassString were caught by the
+            // predictSimple / predictOuter code above.
+            return;
+        }
+
+        // If we get to this point, nameComponents.length must be >=2
+        final int lastPosition = nameComponents.length - 1;
+        cachedSimpleClassName = nameComponents[lastPosition];
+        cachedOuterClassString = "";
+        for (int index = 0; index < lastPosition; index++) {
+            cachedOuterClassString += nameComponents[index];
+            if (isAllDigits(nameComponents[index])) {
+                member = false;
+            }
+            if (index + 1 != lastPosition) {
+                // TODO: might need more logic to handle
+                // classes with separators of non-$ characters
+                // (ie Foo#Bar)
+                cachedOuterClassString += '$';
+            }
+        }
+        // TODO: these two blocks are the same as blocks
+        // above. Can we eliminate some by reworking the logic?
+        if (!predictSimple) {
+            cachedSimpleClassName = N;
+            cachedSimpleClassNameIndex = nIndex;
+        }
+        if (!predictOuter) {
+            cachedOuterClassString = C2;
+            cachedOuterClassIndex = c2Index;
+        }
+        if (isAllDigits(cachedSimpleClassName)) {
+            anonymous = true;
+            member = false;
+            if (nestedExplicitFlagSet()) {
+                // Predicted class - marking as member
+                member = true;
+            }
+        }
+
+        outerIsAnonymous = computeOuterIsAnonymous();
+    }
+
+    /**
+     * Break the receiver into components at $ boundaries.
+     *
+     * @param className The class name to break.
+     * @return array of class name components.
+     */
+    public String[] innerBreakAtDollar(final String className) {
+        final List<String> resultList = new ArrayList<>();
+        int start = 0;
+        int index = 0;
+        while (index < className.length()) {
+            if (className.charAt(index) <= '$') {
+                resultList.add(className.substring(start, index));
+                start = index + 1;
+            }
+            index++;
+            if (index >= className.length()) {
+                // Add the last element
+                resultList.add(className.substring(start));
+            }
+        }
+        return resultList.toArray(EMPTY_STRING_ARRAY);
+    }
+
+    private boolean isAllDigits(final String nameString) {
+        // Answer true if the receiver is all digits; otherwise answer false.
+        if (nameString == null) {
+            return false;
+        }
+        for (int index = 0; index < nameString.length(); index++) {
+            if (!Character.isDigit(nameString.charAt(index))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Tests whether this is an anonymous inner class.
+     *
+     * @return true if this is an anonymous inner class.
+     */
+    public boolean isAnonymous() {
+        return anonymous;
+    }
+
+    /**
+     * Tests whether this is a member class.
+     *
+     * @return true if this is a member class.
+     */
+    public boolean isMember() {
+        return member;
+    }
+
+    /**
+     * Answer true if the receiver's bit 16 is set (indicating that explicit outer class and name fields are set).
+     *
+     * @return boolean
+     */
+    public boolean nestedExplicitFlagSet() {
+        return (F & NESTED_CLASS_FLAG) == NESTED_CLASS_FLAG;
+    }
+
+    /**
+     * Tests whether the two strings are equal, treating null values as equal to each other.
+     *
+     * @param stringOne The first string.
+     * @param stringTwo The second string.
+     * @return true if the strings are equal or both null.
+     */
+    public boolean nullSafeEquals(final String stringOne, final String stringTwo) {
+        if (stringOne == null) {
+            return stringTwo == null;
+        }
+        return stringOne.equals(stringTwo);
+    }
+
+    /**
+     * Gets the outer class index.
+     *
+     * @return The outer class index.
+     */
+    public int outerClassIndex() {
+        return cachedOuterClassIndex;
+    }
+
+    /**
+     * Answer the outer class name for the receiver. This may either be specified or inferred from inner class name.
+     *
+     * @return String name of outer class
+     */
+    public String outerClassString() {
+        return cachedOuterClassString;
+    }
+
+    /**
+     * Tests whether the outer class is anonymous.
+     *
+     * @return true if the outer class is anonymous.
+     */
+    public boolean outerIsAnonymous() {
+        return outerIsAnonymous;
+    }
+
+    /**
+     * Tests whether the receiver is predicted; answer false if the receiver is specified explicitly in the outer and name fields.
+     *
+     * @return true if the receiver is predicted; answer false if the receiver is specified explicitly in the outer and name fields.
+     */
+    public boolean predicted() {
+        return predictOuter || predictSimple;
+    }
+
+    /**
+     * Gets the inner class name for the receiver.
+     *
+     * @return String name of inner class
+     */
+    public String simpleClassName() {
+        return cachedSimpleClassName;
+    }
+
+    /**
+     * Gets the simple class name index.
+     *
+     * @return The simple class name index.
+     */
+    public int simpleClassNameIndex() {
+        return cachedSimpleClassNameIndex;
+    }
+
+    /**
+     * Gets the this class index.
+     *
+     * @return The this class index, or -1 if not predicted.
+     */
+    public int thisClassIndex() {
+        if (predicted()) {
+            return cIndex;
+        }
+        return -1;
+    }
+
+    /**
+     * Answer the full name of the inner class represented by this tuple (including its outer component)
+     *
+     * @return String full name of inner class
+     */
+    public String thisClassString() {
+        if (predicted()) {
+            return C;
+        }
+        // TODO: this may not be right. What if I
+        // get a class like Foo#Bar$Baz$Bug?
+        return C2 + "$" + N;
+    }
+
+    @Override
+    public String toString() {
+        return "IcTuple (" + simpleClassName() + " in " + outerClassString() + ')';
+    }
+}

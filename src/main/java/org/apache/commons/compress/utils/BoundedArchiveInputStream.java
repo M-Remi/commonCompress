@@ -1,0 +1,103 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.apache.commons.compress.utils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+
+import org.apache.commons.io.IOUtils;
+
+/**
+ * NIO backed bounded input stream for reading a predefined amount of data.
+ *
+ * @ThreadSafe this base class is thread safe but implementations must not be.
+ * @since 1.21
+ */
+public abstract class BoundedArchiveInputStream extends InputStream {
+
+    private final long end;
+    private ByteBuffer singleByteBuffer;
+    private long loc;
+
+    /**
+     * Constructs a new bounded input stream.
+     *
+     * @param start     position in the stream from where the reading of this bounded stream starts.
+     * @param remaining amount of bytes which are allowed to read from the bounded stream.
+     */
+    public BoundedArchiveInputStream(final long start, final long remaining) {
+        this.end = start + remaining;
+        if (this.end < start) {
+            // check for potential vulnerability due to overflow
+            throw new IllegalArgumentException("Invalid length of stream at offset=" + start + ", length=" + remaining);
+        }
+        loc = start;
+    }
+
+    @Override
+    public synchronized int read() throws IOException {
+        if (loc >= end) {
+            return -1;
+        }
+        if (singleByteBuffer == null) {
+            singleByteBuffer = ByteBuffer.allocate(1);
+        } else {
+            singleByteBuffer.rewind();
+        }
+        final int read = read(loc, singleByteBuffer);
+        if (read < 1) {
+            return -1;
+        }
+        loc++;
+        return singleByteBuffer.get() & 0xff;
+    }
+
+    @Override
+    public synchronized int read(final byte[] b, final int off, final int len) throws IOException {
+        IOUtils.checkFromIndexSize(b, off, len);
+        if (len == 0) {
+            return 0;
+        }
+        if (loc >= end) {
+            return -1;
+        }
+        // Both len and end - loc are guaranteed to be > 0 here and at least len is <= Integer.MAX_VALUE.
+        final int maxLen = (int) Math.min(len, end - loc);
+        final ByteBuffer buf = ByteBuffer.wrap(b, off, maxLen);
+        final int ret = read(loc, buf);
+        if (ret > 0) {
+            loc += ret;
+        }
+        return ret;
+    }
+
+    /**
+     * Reads bytes from this stream into the given {@link ByteBuffer}, starting at the specified position.
+     *
+     * <p>The caller is responsible for ensuring that the requested range
+     * {@code [pos, pos + buf.remaining())} lies within the valid bounds of the stream.</p>
+     *
+     * @param pos The position within the stream at which to begin reading.
+     * @param buf The buffer into which bytes are read; bytes are written starting at the buffer’s current position.
+     * @return The number of bytes read into the buffer.
+     * @throws IOException if an I/O error occurs while reading.
+     */
+    protected abstract int read(long pos, ByteBuffer buf) throws IOException;
+}

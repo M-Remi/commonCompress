@@ -1,0 +1,156 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.apache.commons.compress.harmony.unpack200;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.compress.harmony.pack200.Codec;
+import org.apache.commons.compress.harmony.pack200.Pack200Exception;
+
+/**
+ * Parses the file band headers (not including the actual bits themselves). At the end of this parse call, the input stream will be positioned at the start of
+ * the file_bits themselves, and there will be Sum(file_size) bits remaining in the stream with BYTE1 compression. A decent implementation will probably just
+ * stream the bytes out to the reconstituted Jar rather than caching them.
+ *
+ * @see <a href="https://docs.oracle.com/en/java/javase/13/docs/specs/pack-spec.html">Pack200: A Packed Class Deployment Format For Java Applications</a>
+ */
+public class FileBands extends BandSet {
+
+    private byte[][] fileBits;
+
+    private int[] fileModtime;
+
+    private String[] fileName;
+
+    private int[] fileOptions;
+
+    private long[] fileSize;
+
+    private final String[] cpUTF8;
+
+    private InputStream in;
+
+    /**
+     * Constructs a new FileBands instance.
+     *
+     * @param segment The segment.
+     */
+    public FileBands(final Segment segment) {
+        super(segment);
+        this.cpUTF8 = segment.getCpBands().getCpUTF8();
+    }
+
+    /**
+     * Gets the file bits.
+     *
+     * @return The file bits.
+     */
+    public byte[][] getFileBits() {
+        return fileBits;
+    }
+
+    /**
+     * Gets the file modification times.
+     *
+     * @return The file modification times.
+     */
+    public int[] getFileModtime() {
+        return fileModtime;
+    }
+
+    /**
+     * Gets the file names.
+     *
+     * @return The file names.
+     */
+    public String[] getFileName() {
+        return fileName;
+    }
+
+    /**
+     * Gets the file options.
+     *
+     * @return The file options.
+     */
+    public int[] getFileOptions() {
+        return fileOptions;
+    }
+
+    /**
+     * Gets the file sizes.
+     *
+     * @return The file sizes.
+     */
+    public long[] getFileSize() {
+        return fileSize;
+    }
+
+    /**
+     * Processes the file bits.
+     *
+     * @throws IOException if an I/O error occurs.
+     */
+    public void processFileBits() throws IOException {
+        // TODO: stream the file bits directly somehow
+        // now read in the bytes
+        final int numberOfFiles = header.getNumberOfFiles();
+        fileBits = new byte[numberOfFiles][];
+        for (int i = 0; i < numberOfFiles; i++) {
+            final int size = (int) fileSize[i];
+            fileBits[i] = org.apache.commons.compress.utils.IOUtils.readRange(in, size);
+            final int read = fileBits[i].length;
+            if (size != 0 && read < size) {
+                throw new Pack200Exception("Expected to read " + size + " bytes but read " + read);
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.apache.commons.compress.harmony.unpack200.BandSet#unpack(java.io.InputStream)
+     */
+    @Override
+    public void read(final InputStream in) throws IOException, Pack200Exception {
+        final int numberOfFiles = header.getNumberOfFiles();
+        final SegmentOptions options = header.getOptions();
+
+        fileName = parseReferences("file_name", in, Codec.UNSIGNED5, numberOfFiles, cpUTF8);
+        fileSize = parseFlags("file_size", in, numberOfFiles, Codec.UNSIGNED5, options.hasFileSizeHi());
+        if (options.hasFileModtime()) {
+            fileModtime = decodeBandInt("file_modtime", in, Codec.DELTA5, numberOfFiles);
+        } else {
+            fileModtime = new int[numberOfFiles];
+        }
+        if (options.hasFileOptions()) {
+            fileOptions = decodeBandInt("file_options", in, Codec.UNSIGNED5, numberOfFiles);
+        } else {
+            fileOptions = new int[numberOfFiles];
+        }
+        this.in = in; // store for use by processFileBits(), which is called
+        // later
+    }
+
+    @Override
+    public void unpack() {
+
+    }
+
+}
