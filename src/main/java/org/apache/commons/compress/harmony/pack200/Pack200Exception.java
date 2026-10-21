@@ -23,7 +23,6 @@ import java.util.function.Function;
 
 import org.apache.commons.compress.CompressException;
 import org.apache.commons.compress.MemoryLimitException;
-import org.apache.commons.compress.archivers.ArchiveException;
 
 /**
  * Signals a problem with a Pack200 coding or decoding issue.

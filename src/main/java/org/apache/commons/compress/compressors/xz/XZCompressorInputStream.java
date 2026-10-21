@@ -23,8 +23,6 @@ import java.io.InputStream;
 
 import org.apache.commons.compress.MemoryLimitException;
 import org.apache.commons.compress.compressors.CompressorInputStream;
-import org.apache.commons.compress.compressors.lzma.LZMACompressorInputStream;
-import org.apache.commons.compress.compressors.lzma.LZMACompressorOutputStream;
 import org.apache.commons.compress.utils.InputStreamStatistics;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.build.AbstractStreamBuilder;
@@ -89,6 +87,8 @@ public class XZCompressorInputStream extends CompressorInputStream implements In
 
         @Override
         public XZCompressorInputStream get() throws IOException {
+            System.out.println("Hello World");
+            System.out.println("Hello World");
             return new XZCompressorInputStream(this);
         }
 

@@ -23,8 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.apache.commons.compress.MemoryLimitException;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveException;
 
 /**
  * Generic Archive utilities.

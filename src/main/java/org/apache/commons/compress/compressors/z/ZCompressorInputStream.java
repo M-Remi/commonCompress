@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.nio.ByteOrder;
 
 import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.commons.compress.compressors.lzw.LZWInputStream;
 
 /**
  * Input stream that decompresses .Z files.
