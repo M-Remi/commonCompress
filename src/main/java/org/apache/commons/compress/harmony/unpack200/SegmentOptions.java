@@ -67,6 +67,45 @@ public class SegmentOptions {
      * @throws Pack200Exception if an unused bit (bit 3 or bit 13+) is non-zero
      */
     public SegmentOptions(final int options) throws Pack200Exception {
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
+        System.out.println("Testing");
         if ((options & UNUSED) != 0) {
             throw new Pack200Exception("Some unused flags are non-zero");
         }
