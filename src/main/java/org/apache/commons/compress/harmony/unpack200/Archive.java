@@ -33,7 +33,6 @@ import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 

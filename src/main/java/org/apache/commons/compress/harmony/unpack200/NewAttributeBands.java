@@ -24,12 +24,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.compress.harmony.internal.AttributeLayoutParser;
-import org.apache.commons.compress.harmony.internal.AttributeLayoutParser.UnionCaseData;
-import org.apache.commons.compress.harmony.internal.AttributeLayoutUtils;
 import org.apache.commons.compress.harmony.pack200.BHSDCodec;
 import org.apache.commons.compress.harmony.pack200.Codec;
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.compress.harmony.unpack200.bytecode.Attribute;
 import org.apache.commons.compress.harmony.unpack200.bytecode.CPClass;
 import org.apache.commons.compress.harmony.unpack200.bytecode.CPDouble;

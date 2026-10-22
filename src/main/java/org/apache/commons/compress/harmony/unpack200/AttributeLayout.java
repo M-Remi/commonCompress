@@ -19,7 +19,6 @@
 package org.apache.commons.compress.harmony.unpack200;
 
 import org.apache.commons.compress.harmony.pack200.Codec;
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.compress.harmony.unpack200.bytecode.ClassFileEntry;
 import org.apache.commons.lang3.StringUtils;
 

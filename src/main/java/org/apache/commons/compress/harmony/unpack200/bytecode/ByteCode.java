@@ -21,7 +21,6 @@ package org.apache.commons.compress.harmony.unpack200.bytecode;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.compress.harmony.unpack200.Segment;
 import org.apache.commons.compress.harmony.unpack200.bytecode.forms.ByteCodeForm;
 

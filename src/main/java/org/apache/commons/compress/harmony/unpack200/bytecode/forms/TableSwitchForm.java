@@ -20,7 +20,6 @@ package org.apache.commons.compress.harmony.unpack200.bytecode.forms;
 
 import java.util.Arrays;
 
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.compress.harmony.unpack200.bytecode.ByteCode;
 import org.apache.commons.compress.harmony.unpack200.bytecode.OperandManager;
 

@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.compress.harmony.pack200.Codec;
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.compress.harmony.unpack200.bytecode.AnnotationDefaultAttribute;
 import org.apache.commons.compress.harmony.unpack200.bytecode.CodeAttribute;
 import org.apache.commons.compress.harmony.unpack200.bytecode.ConstantValueAttribute;

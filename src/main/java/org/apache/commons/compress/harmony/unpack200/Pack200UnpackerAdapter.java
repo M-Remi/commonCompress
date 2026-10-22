@@ -31,8 +31,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.jar.JarOutputStream;
 
-import org.apache.commons.compress.harmony.pack200.Pack200Adapter;
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.compress.java.util.jar.Pack200.Unpacker;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.input.CloseShieldInputStream;

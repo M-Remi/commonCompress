@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.lang3.function.Suppliers;
 
 /**

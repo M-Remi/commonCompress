@@ -24,7 +24,6 @@ import java.io.InputStream;
 
 import org.apache.commons.compress.harmony.pack200.BHSDCodec;
 import org.apache.commons.compress.harmony.pack200.Codec;
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 
 /**
  * SegmentHeader is the header band of a {@link Segment}.

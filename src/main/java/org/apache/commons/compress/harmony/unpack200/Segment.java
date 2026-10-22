@@ -40,7 +40,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.compress.harmony.pack200.Codec;
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.compress.harmony.unpack200.bytecode.Attribute;
 import org.apache.commons.compress.harmony.unpack200.bytecode.CPClass;
 import org.apache.commons.compress.harmony.unpack200.bytecode.CPField;

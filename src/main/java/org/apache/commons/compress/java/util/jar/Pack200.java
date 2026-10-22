@@ -31,7 +31,6 @@ import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
 
-import org.apache.commons.compress.harmony.archive.internal.nls.Messages;
 import org.apache.commons.io.input.BoundedInputStream;
 
 /**

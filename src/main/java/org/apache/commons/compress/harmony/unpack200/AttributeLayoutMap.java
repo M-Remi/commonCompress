@@ -24,8 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
-
 /**
  * Stores a mapping from attribute names to their corresponding layout types. Note that names of attribute layouts and their formats are <em>not</em>
  * internationalized, and should not be translated.

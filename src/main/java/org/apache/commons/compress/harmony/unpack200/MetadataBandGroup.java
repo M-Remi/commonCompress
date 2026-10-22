@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 import org.apache.commons.compress.harmony.unpack200.bytecode.AnnotationDefaultAttribute;
 import org.apache.commons.compress.harmony.unpack200.bytecode.AnnotationsAttribute.Annotation;
 import org.apache.commons.compress.harmony.unpack200.bytecode.AnnotationsAttribute.ElementValue;

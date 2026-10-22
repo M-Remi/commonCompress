@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
-
 /**
  * Local variable type table.
  *

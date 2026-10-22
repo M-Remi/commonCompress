@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.compress.harmony.pack200.Codec;
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
 
 /**
  * Parses the file band headers (not including the actual bits themselves). At the end of this parse call, the input stream will be positioned at the start of

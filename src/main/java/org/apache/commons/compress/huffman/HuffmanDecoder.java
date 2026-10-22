@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
-import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.utils.BitInputStream;
 
 /**

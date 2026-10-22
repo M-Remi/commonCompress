@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.compress.harmony.pack200.Pack200Exception;
-
 /**
  * Abstract superclass for attributes that have some part encoded with Byte Code Injection (BCI) renumbering.
  *
